@@ -424,6 +424,91 @@ def root():
     return {"status": "ok", "service": "oauth2-auth-service"}
 
 
+# Simple UI to verify Open edX credentials directly via password grant
+@app.get("/sso/openedx/check", response_class=HTMLResponse)
+def openedx_check_form(request: Request):
+    if not settings.OPENEDX_ENABLED:
+        return HTMLResponse("<h3>Open edX SSO not enabled</h3>", status_code=400)
+    return templates.TemplateResponse(
+        "openedx_check.html",
+        {"request": request, "error": None, "success": None},
+    )
+
+
+@app.post("/sso/openedx/check", response_class=HTMLResponse)
+async def openedx_check_submit(request: Request):
+    if not settings.OPENEDX_ENABLED:
+        return HTMLResponse("<h3>Open edX SSO not enabled</h3>", status_code=400)
+    form = await request.form()
+    identifier = (form.get("identifier") or "").strip()
+    password = form.get("password") or ""
+    if not identifier or not password:
+        return templates.TemplateResponse(
+            "openedx_check.html",
+            {"request": request, "error": "Please enter username/email and password.", "success": None},
+            status_code=400,
+        )
+
+    if not settings.openedx_token_url or not settings.OPENEDX_CLIENT_ID:
+        return templates.TemplateResponse(
+            "openedx_check.html",
+            {"request": request, "error": "Open edX token endpoint or client not configured.", "success": None},
+            status_code=500,
+        )
+
+    # Try Resource Owner Password Credentials grant against Open edX
+    payload = {
+        "grant_type": "password",
+        "username": identifier,
+        "password": password,
+        "client_id": settings.OPENEDX_CLIENT_ID,
+    }
+    if settings.OPENEDX_CLIENT_SECRET:
+        payload["client_secret"] = settings.OPENEDX_CLIENT_SECRET
+    if settings.OPENEDX_SCOPES:
+        payload["scope"] = settings.OPENEDX_SCOPES
+
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.post(
+                settings.openedx_token_url,
+                data=payload,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            )
+    except httpx.HTTPError as e:
+        return templates.TemplateResponse(
+            "openedx_check.html",
+            {"request": request, "error": f"Network error contacting Open edX: {e}", "success": None},
+            status_code=502,
+        )
+
+    if resp.status_code == 200 and resp.json().get("access_token"):
+        return templates.TemplateResponse(
+            "openedx_check.html",
+            {
+                "request": request,
+                "error": None,
+                "success": f"Credentials valid for '{identifier}'. User exists on Open edX.",
+            },
+        )
+
+    # Common failure reasons on Open edX: invalid_grant, unsupported_grant_type, unauthorized_client
+    try:
+        detail = resp.json()
+    except Exception:
+        detail = {"error": resp.text}
+    message = detail.get("error_description") or detail.get("error") or "Login failed"
+    return templates.TemplateResponse(
+        "openedx_check.html",
+        {
+            "request": request,
+            "error": f"Open edX rejected credentials: {message} (status {resp.status_code})",
+            "success": None,
+        },
+        status_code=401 if resp.status_code in (400, 401) else 500,
+    )
+
+
 # Placeholder for future Open edX integration
 @app.get("/health/openedx")
 def openedx_healthcheck():
