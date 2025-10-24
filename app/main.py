@@ -421,7 +421,10 @@ def create_client(payload: ClientCreate, db: Session = Depends(get_db)):
 
 @app.get("/")
 def root():
-    return {"status": "ok", "service": "oauth2-auth-service"}
+    # Redirect to a human-friendly page instead of JSON
+    if settings.OPENEDX_ENABLED:
+        return RedirectResponse("/sso/openedx/check", status_code=302)
+    return RedirectResponse("/login", status_code=302)
 
 
 # Simple UI to verify Open edX credentials directly via password grant
