@@ -1,0 +1,16 @@
+# Sensitive environment files
+.env
+
+# Nested repo directory (ignore to avoid add errors)
+EDX-TEST/
+
+# Python artifacts
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
