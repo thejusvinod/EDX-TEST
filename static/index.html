@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Secure Weather</title>
+  <link rel="stylesheet" href="/static/weather.css" />
+  <style>.hidden{display:none}.banner{padding:.5rem 1rem;background:#e6f4ff;border:1px solid #b3d7ff;border-radius:8px;margin-bottom:10px}</style>
+</head>
+<body>
+  <div class="card">
+    <div id="authBanner" class="banner hidden"></div>
+
+    <form class="search" id="searchForm">
+      <input type="text" placeholder="Enter city name" aria-label="City">
+      <button type="submit"><img src="/static/img/search.png" alt="Search"></button>
+    </form>
+
+    <div id="error" class="error hidden"></div>
+
+    <div class="weather hidden">
+      <img src="/static/img/rain.png" class="weather-icon" alt="Weather icon">
+      <h1 class="temp">--</h1>
+      <h2 class="city">—</h2>
+      <div class="details">
+        <div class="col">
+          <img src="/static/img/humidity.png" alt="Humidity">
+          <div>
+            <p class="humidity">--%</p>
+            <p>Humidity</p>
+          </div>
+        </div>
+        <div class="col">
+          <img src="/static/img/wind.png" alt="Wind">
+          <div>
+            <p class="wind">-- km/h</p>
+            <p>Wind Speed</p>
+          </div>
+        </div>
+      </div>
+
+      <p style="margin-top:12px"><a href="/logout">Logout</a></p>
+    </div>
+  </div>
+
+<script>
+  const authBanner = document.getElementById('authBanner');
+  const errorBox = document.getElementById('error');
+  const weatherBox = document.querySelector('.weather');
+  const searchForm = document.getElementById('searchForm');
+  const searchInput = document.querySelector('.search input');
+  const weatherIcon = document.querySelector('.weather-icon');
+
+  function showError(msg){ errorBox.textContent = msg; errorBox.classList.remove('hidden'); }
+  function hideError(){ errorBox.classList.add('hidden'); }
+
+  const iconMap = (main) => {
+    const local = {
+      Clouds: "/static/img/clouds.png",
+      Clear: "/static/img/clear.png",
+      Rain: "/static/img/rain.png",
+      Drizzle: "/static/img/drizzle.png",
+      Mist: "/static/img/mist.png",
+      Smoke: "/static/img/mist.png",
+      Haze: "/static/img/mist.png",
+      Fog: "/static/img/mist.png",
+      Snow: "/static/img/snow.png",
+      Thunderstorm: "/static/img/rain.png",
+      Humidity: "/static/img/humidity.png"
+    };
+    return local[main] || "/static/img/rain.png";
+  };
+
+  async function ensureAuth(){
+    const res = await fetch('/auth/status', { credentials:'include' });
+    const data = await res.json();
+    if(!data.authenticated){
+      window.location.href = '/login';
+      return false;
+    }
+    try{
+      const meRes = await fetch('/me', { credentials:'include' });
+      if(meRes.ok){
+        const me = await meRes.json();
+        authBanner.classList.remove('hidden');
+        authBanner.textContent = `Signed in as ${me.username || me.email || 'Open edX user'}`;
+      }
+    }catch(e){}
+    return true;
+  }
+
+  async function getWeather(city){
+    hideError();
+    const res = await fetch(`/weather?city=${encodeURIComponent(city)}`, { credentials:'include' });
+    if(!res.ok){
+      showError('City not found or API error.');
+      weatherBox.classList.add('hidden');
+      return;
+    }
+    const data = await res.json();
+    document.querySelector('.city').textContent = data.name ?? city;
+    const t = Math.round(data.main?.temp ?? 0);
+    document.querySelector('.temp').textContent = `${t}°C`;
+    document.querySelector('.humidity').textContent = `${data.main?.humidity ?? '--'}%`;
+    const windMs = data.wind?.speed ?? 0;
+    document.querySelector('.wind').textContent = `${Math.round(windMs*3.6)} km/h`;
+    const main = (data.weather && data.weather[0]?.main) || "Clear";
+    weatherIcon.src = iconMap(main);
+    weatherIcon.alt = main;
+    weatherBox.classList.remove('hidden');
+  }
+
+  searchForm.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const c = (searchInput.value || 'Kollam').trim();
+    if(!c){ showError('Please enter a city'); return; }
+    getWeather(c);
+  });
+
+  (async ()=>{
+    const ok = await ensureAuth();
+    if(ok){ getWeather('Kollam'); }
+  })();
+</script>
+</body>
+</html>

@@ -1,20 +1,26 @@
 services:
   - type: web
-    name: oauth2-auth-service
+    name: weather-edx-auth
     env: python
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    region: oregon   # pick your region
+    plan: free       # or standard
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn -w 3 -t 120 -b 0.0.0.0:$PORT app:app"
     envVars:
-      - key: SECRET_KEY
+      - key: FLASK_SECRET_KEY
         generateValue: true
-      - key: SESSION_SECRET
-        generateValue: true
-      - key: DATABASE_URL
-        value: sqlite:///./data.db
-      - key: ACCESS_TOKEN_EXPIRE_MINUTES
-        value: "30"
-      - key: REFRESH_TOKEN_EXPIRE_DAYS
-        value: "30"
-      - key: TOKEN_ISSUER
-        value: oauth2-auth-service
+      - key: OPENEDX_BASE_URL
+        sync: false
+      - key: OAUTH_CLIENT_ID
+        sync: false
+      - key: OAUTH_CLIENT_SECRET
+        sync: false   # leave empty if client is Public (PKCE-only)
+      - key: REDIRECT_URI
+        sync: false   # e.g., https://your-service.onrender.com/callback
+      - key: OAUTH_SCOPES
+        value: "read profile"
+      - key: OPENWEATHER_API_KEY
+        sync: false
+      - key: COOKIE_SECURE
+        value: "1"
+    healthCheckPath: "/healthz"

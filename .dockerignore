@@ -1,0 +1,60 @@
+## VCS
+.git
+.gitignore
+.dockerignore
+
+## Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+## Virtual environments
+.env
+.env.*
+.venv
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+## Tests and caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.nox/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+
+## Packaging artifacts
+build/
+dist/
+.eggs/
+*.egg-info/
+pip-wheel-metadata/
+wheels/
+
+## Logs and temp
+*.log
+logs/
+tmp/
+temp/
+
+## IDE/editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+## OS files
+.DS_Store
+Thumbs.db
+
+## Optional: files not needed in the image
+# render.yaml
+
