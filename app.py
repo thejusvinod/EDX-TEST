@@ -3,10 +3,11 @@ import hashlib
 import os
 import secrets
 import time
-from urllib.parse import urlencode, quote_plus
+from urllib.parse import urlencode, quote_plus, urlparse
 
 import requests
 from flask import Flask, redirect, request, session, jsonify, send_from_directory, make_response
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # ===== Flask setup =====
 app = Flask(__name__, static_url_path="/static", static_folder="static")
@@ -17,6 +18,10 @@ app.config.update(
     # In prod behind HTTPS on Render:
     SESSION_COOKIE_SECURE=os.environ.get("COOKIE_SECURE", "1") == "1",
 )
+
+# Respect reverse proxy headers (e.g., Render) for scheme/host so we can
+# generate correct external URLs like https://<app>/callback
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 
 # ===== Config (ENV) =====
 OPENEDX_BASE_URL = os.environ.get("OPENEDX_BASE_URL", "").rstrip("/")
@@ -79,6 +84,24 @@ def try_refresh():
     }
     return True
 
+# ===== URL helpers =====
+def _external_base_url() -> str:
+    # request.url_root already respects ProxyFix
+    return (request.url_root or "").rstrip("/")
+
+def _redirect_uri_effective() -> str:
+    # If REDIRECT_URI is set to "auto" or empty, or its host differs from the
+    # current request host, compute it dynamically so OAuth returns to this app.
+    if not REDIRECT_URI or REDIRECT_URI.lower() == "auto":
+        return f"{_external_base_url()}/callback"
+    try:
+        env_netloc = urlparse(REDIRECT_URI).netloc
+    except Exception:
+        env_netloc = ""
+    if env_netloc and env_netloc != request.host:
+        return f"{_external_base_url()}/callback"
+    return REDIRECT_URI
+
 # ===== Routes =====
 
 @app.route("/")
@@ -100,9 +123,10 @@ def login():
         "code_verifier": code_verifier,
         "state": state,
     }
+    redirect_uri = _redirect_uri_effective()
     params = {
         "client_id": OAUTH_CLIENT_ID,
-        "redirect_uri": REDIRECT_URI,
+        "redirect_uri": redirect_uri,
         "response_type": "code",
         "scope": OAUTH_SCOPES,
         "state": state,
@@ -123,10 +147,11 @@ def callback():
     if not code or not pkce or state != pkce.get("state"):
         return make_response("Invalid OAuth state", 400)
 
+    redirect_uri = _redirect_uri_effective()
     data = {
         "grant_type": "authorization_code",
         "code": code,
-        "redirect_uri": REDIRECT_URI,
+        "redirect_uri": redirect_uri,
         "client_id": OAUTH_CLIENT_ID,
         "code_verifier": pkce["code_verifier"],
     }
