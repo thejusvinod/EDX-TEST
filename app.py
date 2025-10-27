@@ -29,6 +29,7 @@ OAUTH_CLIENT_ID = os.environ.get("OAUTH_CLIENT_ID", "")
 OAUTH_CLIENT_SECRET = os.environ.get("OAUTH_CLIENT_SECRET", "")  # optional if Public+PKCE
 REDIRECT_URI = os.environ.get("REDIRECT_URI", "http://localhost:5000/callback")
 OAUTH_SCOPES = os.environ.get("OAUTH_SCOPES", "read profile").strip()
+OAUTH_USE_PKCE_ENV = os.environ.get("OAUTH_USE_PKCE", "auto").lower()  # auto|1|0
 
 # Open edX typical endpoints:
 AUTHZ_URL = f"{OPENEDX_BASE_URL}/oauth2/authorize"
@@ -102,6 +103,14 @@ def _redirect_uri_effective() -> str:
         return f"{_external_base_url()}/callback"
     return REDIRECT_URI
 
+def use_pkce() -> bool:
+    # If explicitly configured, honor it. Otherwise: use PKCE only when no secret provided.
+    if OAUTH_USE_PKCE_ENV in ("1", "true", "yes", "on"):
+        return True
+    if OAUTH_USE_PKCE_ENV in ("0", "false", "no", "off"):
+        return False
+    return not bool(OAUTH_CLIENT_SECRET)
+
 # ===== Routes =====
 
 @app.route("/")
@@ -117,12 +126,8 @@ def login():
     if not OPENEDX_BASE_URL or not OAUTH_CLIENT_ID:
         return make_response("Server not configured for OAuth. Set environment variables.", 500)
 
-    code_verifier, code_challenge = create_pkce()
     state = _b64url(os.urandom(24))
-    session["pkce"] = {
-        "code_verifier": code_verifier,
-        "state": state,
-    }
+    session["oauth_state"] = state
     redirect_uri = _redirect_uri_effective()
     params = {
         "client_id": OAUTH_CLIENT_ID,
@@ -130,9 +135,12 @@ def login():
         "response_type": "code",
         "scope": OAUTH_SCOPES,
         "state": state,
-        "code_challenge": code_challenge,
-        "code_challenge_method": "S256",
     }
+    if use_pkce():
+        code_verifier, code_challenge = create_pkce()
+        session["pkce_verifier"] = code_verifier
+        params["code_challenge"] = code_challenge
+        params["code_challenge_method"] = "S256"
     return redirect(f"{AUTHZ_URL}?{urlencode(params)}", code=302)
 
 @app.route("/callback")
@@ -143,8 +151,8 @@ def callback():
 
     code = request.args.get("code")
     state = request.args.get("state")
-    pkce = session.get("pkce")
-    if not code or not pkce or state != pkce.get("state"):
+    saved_state = session.get("oauth_state")
+    if not code or not saved_state or state != saved_state:
         return make_response("Invalid OAuth state", 400)
 
     redirect_uri = _redirect_uri_effective()
@@ -153,8 +161,12 @@ def callback():
         "code": code,
         "redirect_uri": redirect_uri,
         "client_id": OAUTH_CLIENT_ID,
-        "code_verifier": pkce["code_verifier"],
     }
+    if use_pkce():
+        code_verifier = session.get("pkce_verifier")
+        if not code_verifier:
+            return make_response("Missing PKCE verifier in session", 400)
+        data["code_verifier"] = code_verifier
     if OAUTH_CLIENT_SECRET:
         data["client_secret"] = OAUTH_CLIENT_SECRET
 
@@ -170,7 +182,8 @@ def callback():
         "token_type": payload.get("token_type", "Bearer"),
         "expires_at": time.time() + expires_in - 30,
     }
-    session.pop("pkce", None)
+    session.pop("pkce_verifier", None)
+    session.pop("oauth_state", None)
     return redirect("/", code=302)
 
 @app.route("/me")
