@@ -96,10 +96,16 @@ def _redirect_uri_effective() -> str:
     if not REDIRECT_URI or REDIRECT_URI.lower() == "auto":
         return f"{_external_base_url()}/callback"
     try:
-        env_netloc = urlparse(REDIRECT_URI).netloc
+        parsed = urlparse(REDIRECT_URI)
+        env_netloc = parsed.netloc
+        env_path = parsed.path or ""
     except Exception:
         env_netloc = ""
+        env_path = ""
     if env_netloc and env_netloc != request.host:
+        return f"{_external_base_url()}/callback"
+    # Enforce our app's callback path if none or root was provided
+    if env_path in ("", "/"):
         return f"{_external_base_url()}/callback"
     return REDIRECT_URI
 
