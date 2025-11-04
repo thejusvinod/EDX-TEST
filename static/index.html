@@ -3,124 +3,491 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Secure Weather</title>
+  <title>My Learning Dashboard</title>
   <link rel="stylesheet" href="/static/weather.css" />
-  <style>.hidden{display:none}.banner{padding:.5rem 1rem;background:#e6f4ff;border:1px solid #b3d7ff;border-radius:8px;margin-bottom:10px}</style>
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    
+    .header h1 {
+      color: #333;
+      font-size: 28px;
+      margin: 0;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .username {
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .logout-btn {
+      background: #dc3545;
+      color: white;
+      padding: 8px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s;
+    }
+    
+    .logout-btn:hover {
+      background: #c82333;
+      transform: translateY(-2px);
+    }
+
+    .weather-link {
+      color: #667eea;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .weather-link:hover {
+      text-decoration: underline;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 50px;
+      color: white;
+      font-size: 18px;
+    }
+    
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #f5c6cb;
+    }
+
+    .hidden {
+      display: none;
+    }
+    
+    .courses-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 25px;
+    }
+    
+    .course-card {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .course-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .course-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    }
+    
+    .course-header {
+      margin-bottom: 20px;
+    }
+    
+    .course-name {
+      font-size: 20px;
+      color: #333;
+      margin-bottom: 8px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    
+    .course-id {
+      font-size: 11px;
+      color: #999;
+      word-break: break-all;
+      font-family: monospace;
+    }
+    
+    .course-status {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+    
+    .status-active {
+      background: #d4edda;
+      color: #155724;
+    }
+    
+    .status-inactive {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    
+    .progress-section {
+      margin: 20px 0;
+    }
+    
+    .progress-label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .progress-percent {
+      font-weight: 700;
+      color: #667eea;
+      font-size: 16px;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 28px;
+      background: #f0f0f0;
+      border-radius: 14px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      transition: width 0.6s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .grade-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 2px solid #f0f0f0;
+    }
+    
+    .grade-item {
+      text-align: center;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+    
+    .grade-label {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .grade-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: #333;
+    }
+    
+    .grade-value.passed {
+      color: #28a745;
+    }
+    
+    .grade-value.failed {
+      color: #dc3545;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .empty-state h2 {
+      color: #666;
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+    
+    .empty-state p {
+      color: #999;
+      margin-bottom: 20px;
+    }
+    
+    .refresh-btn {
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    
+    .refresh-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .enrollment-mode {
+      display: inline-block;
+      padding: 3px 10px;
+      background: #e3f2fd;
+      color: #1976d2;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-top: 5px;
+    }
+    
+    @media (max-width: 768px) {
+      .courses-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .header h1 {
+        font-size: 22px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div class="card">
-    <div id="authBanner" class="banner hidden"></div>
-
-    <form class="search" id="searchForm">
-      <input type="text" placeholder="Enter city name" aria-label="City">
-      <button type="submit"><img src="/static/img/search.png" alt="Search"></button>
-    </form>
-
-    <div id="error" class="error hidden"></div>
-
-    <div class="weather hidden">
-      <img src="/static/img/rain.png" class="weather-icon" alt="Weather icon">
-      <h1 class="temp">--</h1>
-      <h2 class="city">—</h2>
-      <div class="details">
-        <div class="col">
-          <img src="/static/img/humidity.png" alt="Humidity">
-          <div>
-            <p class="humidity">--%</p>
-            <p>Humidity</p>
-          </div>
-        </div>
-        <div class="col">
-          <img src="/static/img/wind.png" alt="Wind">
-          <div>
-            <p class="wind">-- km/h</p>
-            <p>Wind Speed</p>
-          </div>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1>📚 My Learning Dashboard</h1>
+      <div class="user-info">
+        <a href="/weather" class="weather-link">🌤️ Weather App</a>
+        <span class="username" id="username">Loading...</span>
+        <a href="/logout" class="logout-btn">Logout</a>
       </div>
-
-      <p style="margin-top:12px"><a href="/logout">Logout</a></p>
     </div>
+    
+    <div id="error" class="error hidden"></div>
+    <div id="loading" class="loading">Loading your courses...</div>
+    <div id="coursesContainer" class="courses-grid"></div>
   </div>
 
-<script>
-  const authBanner = document.getElementById('authBanner');
-  const errorBox = document.getElementById('error');
-  const weatherBox = document.querySelector('.weather');
-  const searchForm = document.getElementById('searchForm');
-  const searchInput = document.querySelector('.search input');
-  const weatherIcon = document.querySelector('.weather-icon');
+  <script>
+    const loadingEl = document.getElementById('loading');
+    const errorEl = document.getElementById('error');
+    const coursesContainer = document.getElementById('coursesContainer');
+    const usernameEl = document.getElementById('username');
 
-  function showError(msg){ errorBox.textContent = msg; errorBox.classList.remove('hidden'); }
-  function hideError(){ errorBox.classList.add('hidden'); }
-
-  const iconMap = (main) => {
-    const local = {
-      Clouds: "/static/img/clouds.png",
-      Clear: "/static/img/clear.png",
-      Rain: "/static/img/rain.png",
-      Drizzle: "/static/img/drizzle.png",
-      Mist: "/static/img/mist.png",
-      Smoke: "/static/img/mist.png",
-      Haze: "/static/img/mist.png",
-      Fog: "/static/img/mist.png",
-      Snow: "/static/img/snow.png",
-      Thunderstorm: "/static/img/rain.png",
-      Humidity: "/static/img/humidity.png"
-    };
-    return local[main] || "/static/img/rain.png";
-  };
-
-  async function ensureAuth(){
-    const res = await fetch('/auth/status', { credentials:'include' });
-    const data = await res.json();
-    if(!data.authenticated){
-      window.location.href = '/login';
-      return false;
+    function showError(message) {
+      errorEl.textContent = message;
+      errorEl.classList.remove('hidden');
+      loadingEl.style.display = 'none';
     }
-    try{
-      const meRes = await fetch('/me', { credentials:'include' });
-      if(meRes.ok){
-        const me = await meRes.json();
-        authBanner.classList.remove('hidden');
-        authBanner.textContent = `Signed in as ${me.username || me.email || 'Open edX user'}`;
+
+    function hideError() {
+      errorEl.classList.add('hidden');
+    }
+
+    async function ensureAuth() {
+      try {
+        const res = await fetch('/auth/status', { credentials: 'include' });
+        const data = await res.json();
+        if (!data.authenticated) {
+          window.location.href = '/login';
+          return false;
+        }
+        return true;
+      } catch (e) {
+        showError('Authentication error. Please try logging in again.');
+        return false;
       }
-    }catch(e){}
-    return true;
-  }
-
-  async function getWeather(city){
-    hideError();
-    const res = await fetch(`/weather?city=${encodeURIComponent(city)}`, { credentials:'include' });
-    if(!res.ok){
-      showError('City not found or API error.');
-      weatherBox.classList.add('hidden');
-      return;
     }
-    const data = await res.json();
-    document.querySelector('.city').textContent = data.name ?? city;
-    const t = Math.round(data.main?.temp ?? 0);
-    document.querySelector('.temp').textContent = `${t}°C`;
-    document.querySelector('.humidity').textContent = `${data.main?.humidity ?? '--'}%`;
-    const windMs = data.wind?.speed ?? 0;
-    document.querySelector('.wind').textContent = `${Math.round(windMs*3.6)} km/h`;
-    const main = (data.weather && data.weather[0]?.main) || "Clear";
-    weatherIcon.src = iconMap(main);
-    weatherIcon.alt = main;
-    weatherBox.classList.remove('hidden');
-  }
 
-  searchForm.addEventListener('submit', (e)=>{
-    e.preventDefault();
-    const c = (searchInput.value || 'Kollam').trim();
-    if(!c){ showError('Please enter a city'); return; }
-    getWeather(c);
-  });
+    async function getUserInfo() {
+      try {
+        const res = await fetch('/me', { credentials: 'include' });
+        if (res.ok) {
+          const userData = await res.json();
+          const displayName = userData.username || userData.email || 'User';
+          usernameEl.textContent = `Welcome, ${displayName}`;
+          return userData;
+        }
+      } catch (e) {
+        console.error('Error fetching user info:', e);
+      }
+      usernameEl.textContent = 'User';
+      return null;
+    }
 
-  (async ()=>{
-    const ok = await ensureAuth();
-    if(ok){ getWeather('Kollam'); }
-  })();
-</script>
+    function formatPercent(value) {
+      if (value === null || value === undefined) return 0;
+      return Math.round(value);
+    }
+
+    function createCourseCard(course) {
+      const card = document.createElement('div');
+      card.className = 'course-card';
+      
+      // Extract progress data
+      const completion = course.completion?.completion || {};
+      const completionPercent = formatPercent(completion.percent || 0);
+      
+      const grades = course.grades || {};
+      const gradePercent = formatPercent((grades.percent || 0) * 100);
+      const passed = grades.passed;
+      
+      // Status badge
+      const statusClass = course.is_active ? 'status-active' : 'status-inactive';
+      const statusText = course.is_active ? '✓ Active' : '✗ Inactive';
+      
+      // Enrollment mode
+      const enrollmentMode = course.enrollment_mode || 'audit';
+      
+      card.innerHTML = `
+        <div class="course-header">
+          <h2 class="course-name">${course.course_name || 'Untitled Course'}</h2>
+          <p class="course-id">${course.course_id || ''}</p>
+          <div style="margin-top: 8px;">
+            <span class="course-status ${statusClass}">${statusText}</span>
+            <span class="enrollment-mode">${enrollmentMode}</span>
+          </div>
+        </div>
+        
+        <div class="progress-section">
+          <div class="progress-label">
+            <span>📊 Course Progress</span>
+            <span class="progress-percent">${completionPercent}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${completionPercent}%">
+              ${completionPercent > 15 ? completionPercent + '%' : ''}
+            </div>
+          </div>
+        </div>
+        
+        <div class="grade-section">
+          <div class="grade-item">
+            <div class="grade-label">Current Grade</div>
+            <div class="grade-value">${gradePercent}%</div>
+          </div>
+          <div class="grade-item">
+            <div class="grade-label">Status</div>
+            <div class="grade-value ${passed ? 'passed' : (grades.percent !== undefined ? 'failed' : '')}">${
+              passed ? '✓ Passing' : (grades.percent !== undefined ? '✗ Not Passing' : 'N/A')
+            }</div>
+          </div>
+        </div>
+      `;
+      
+      return card;
+    }
+
+    async function loadCourses() {
+      hideError();
+      loadingEl.style.display = 'block';
+      coursesContainer.innerHTML = '';
+      
+      try {
+        const res = await fetch('/api/courses/progress', { credentials: 'include' });
+        
+        if (!res.ok) {
+          if (res.status === 401) {
+            window.location.href = '/login';
+            return;
+          }
+          throw new Error(`Failed to fetch courses: ${res.statusText}`);
+        }
+        
+        const data = await res.json();
+        loadingEl.style.display = 'none';
+        
+        if (!data.courses || data.courses.length === 0) {
+          coursesContainer.innerHTML = `
+            <div class="empty-state">
+              <h2>📚 No Courses Found</h2>
+              <p>You are not enrolled in any courses yet.</p>
+              <button class="refresh-btn" onclick="loadCourses()">🔄 Refresh</button>
+            </div>
+          `;
+          return;
+        }
+        
+        // Create cards for each course
+        data.courses.forEach(course => {
+          const card = createCourseCard(course);
+          coursesContainer.appendChild(card);
+        });
+        
+      } catch (e) {
+        loadingEl.style.display = 'none';
+        showError(`Error loading courses: ${e.message}`);
+        console.error('Error:', e);
+      }
+    }
+
+    // Initialize
+    (async () => {
+      const authenticated = await ensureAuth();
+      if (!authenticated) return;
+      
+      await getUserInfo();
+      await loadCourses();
+    })();
+  </script>
 </body>
 </html>
