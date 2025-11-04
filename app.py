@@ -150,14 +150,6 @@ def use_pkce() -> bool:
  
 @app.route("/")
 def index():
-    # Serve the course dashboard if authenticated, otherwise the weather app
-    if is_authenticated():
-        return send_from_directory("static", "dashboard.html")
-    return send_from_directory("static", "index.html")
-
-@app.route("/weather-app")
-def weather_app():
-    """Original weather app interface"""
     return send_from_directory("static", "index.html")
  
 @app.route("/auth/status")
