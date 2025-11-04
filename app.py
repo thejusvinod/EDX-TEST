@@ -150,7 +150,13 @@ def use_pkce() -> bool:
  
 @app.route("/")
 def index():
+    """Main dashboard - shows courses"""
     return send_from_directory("static", "index.html")
+
+@app.route("/weather")
+def weather_page():
+    """Weather app page"""
+    return send_from_directory("static", "weather.html")
  
 @app.route("/auth/status")
 def auth_status():
