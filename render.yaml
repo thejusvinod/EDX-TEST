@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: weather-edx-auth
+    name: edx-course-dashboard
     env: python
     region: oregon   # pick your region
     plan: free       # or standard
@@ -19,8 +19,6 @@ services:
         sync: false   # e.g., https://your-service.onrender.com/callback
       - key: OAUTH_SCOPES
         value: "read profile"
-      - key: OPENWEATHER_API_KEY
-        sync: false
       - key: COOKIE_SECURE
         value: "1"
     healthCheckPath: "/healthz"

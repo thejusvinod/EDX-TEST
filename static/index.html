@@ -4,324 +4,60 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Learning Dashboard</title>
-  <link rel="stylesheet" href="/static/weather.css" />
   <style>
-    body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px;
-      font-family: 'Poppins', sans-serif;
-    }
-    
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    
-    .header {
-      background: white;
-      padding: 20px 30px;
-      border-radius: 15px;
-      margin-bottom: 30px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-    
-    .header h1 {
-      color: #333;
-      font-size: 28px;
-      margin: 0;
-    }
-    
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      flex-wrap: wrap;
-    }
-    
-    .username {
-      color: #666;
-      font-size: 14px;
-    }
-    
-    .logout-btn {
-      background: #dc3545;
-      color: white;
-      padding: 8px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      text-decoration: none;
-      display: inline-block;
-      transition: all 0.3s;
-    }
-    
-    .logout-btn:hover {
-      background: #c82333;
-      transform: translateY(-2px);
-    }
-
-    .weather-link {
-      color: #667eea;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .weather-link:hover {
-      text-decoration: underline;
-    }
-    
-    .loading {
-      text-align: center;
-      padding: 50px;
-      color: white;
-      font-size: 18px;
-    }
-    
-    .error {
-      background: #f8d7da;
-      color: #721c24;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      border: 1px solid #f5c6cb;
-    }
-
-    .hidden {
-      display: none;
-    }
-    
-    .courses-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 25px;
-    }
-    
-    .course-card {
-      background: white;
-      border-radius: 15px;
-      padding: 25px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      transition: all 0.3s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .course-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    .course-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-    }
-    
-    .course-header {
-      margin-bottom: 20px;
-    }
-    
-    .course-name {
-      font-size: 20px;
-      color: #333;
-      margin-bottom: 8px;
-      font-weight: 600;
-      line-height: 1.4;
-    }
-    
-    .course-id {
-      font-size: 11px;
-      color: #999;
-      word-break: break-all;
-      font-family: monospace;
-    }
-    
-    .course-status {
-      display: inline-block;
-      padding: 5px 12px;
-      border-radius: 15px;
-      font-size: 12px;
-      font-weight: 500;
-      margin-top: 10px;
-    }
-    
-    .status-active {
-      background: #d4edda;
-      color: #155724;
-    }
-    
-    .status-inactive {
-      background: #f8d7da;
-      color: #721c24;
-    }
-    
-    .progress-section {
-      margin: 20px 0;
-    }
-    
-    .progress-label {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .progress-percent {
-      font-weight: 700;
-      color: #667eea;
-      font-size: 16px;
-    }
-    
-    .progress-bar {
-      width: 100%;
-      height: 28px;
-      background: #f0f0f0;
-      border-radius: 14px;
-      overflow: hidden;
-      position: relative;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-      transition: width 0.6s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 13px;
-      font-weight: 700;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    
-    .grade-section {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 2px solid #f0f0f0;
-    }
-    
-    .grade-item {
-      text-align: center;
-      padding: 10px;
-      background: #f8f9fa;
-      border-radius: 10px;
-    }
-    
-    .grade-label {
-      font-size: 12px;
-      color: #666;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .grade-value {
-      font-size: 26px;
-      font-weight: 700;
-      color: #333;
-    }
-    
-    .grade-value.passed {
-      color: #28a745;
-    }
-    
-    .grade-value.failed {
-      color: #dc3545;
-    }
-    
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-    
-    .empty-state h2 {
-      color: #666;
-      margin-bottom: 10px;
-      font-size: 24px;
-    }
-    
-    .empty-state p {
-      color: #999;
-      margin-bottom: 20px;
-    }
-    
-    .refresh-btn {
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 12px 30px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      transition: all 0.3s;
-    }
-    
-    .refresh-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    .enrollment-mode {
-      display: inline-block;
-      padding: 3px 10px;
-      background: #e3f2fd;
-      color: #1976d2;
-      border-radius: 10px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      margin-top: 5px;
-    }
-    
-    @media (max-width: 768px) {
-      .courses-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      
-      .header h1 {
-        font-size: 22px;
-      }
-    }
+    body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial, sans-serif; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .header { background: white; padding: 20px 30px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+    .header h1 { color: #333; font-size: 28px; margin: 0; }
+    .user-info { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+    .username { color: #666; font-size: 14px; }
+    .login-btn { background: #3b82f6; color: white; padding: 8px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-block; transition: all 0.3s; }
+    .login-btn:hover { background: #1d4ed8; transform: translateY(-2px); }
+    .logout-btn { background: #dc3545; color: white; padding: 8px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-block; transition: all 0.3s; }
+    .logout-btn:hover { background: #c82333; transform: translateY(-2px); }
+    .loading { text-align: center; padding: 50px; color: white; font-size: 18px; }
+    .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #f5c6cb; }
+    .hidden { display: none; }
+    .courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; }
+    .course-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: all 0.3s; position: relative; overflow: hidden; }
+    .course-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); }
+    .course-card:hover { transform: translateY(-8px); }
+    .course-header { margin-bottom: 15px; }
+    .course-name { margin: 0 0 5px; font-size: 20px; color: #333; }
+    .course-id { margin: 0; font-size: 12px; color: #888; }
+    .course-status { display: inline-block; padding: 5px 12px; border-radius: 15px; font-size: 12px; font-weight: 500; margin-top: 10px; }
+    .status-active { background: #d4edda; color: #155724; }
+    .status-inactive { background: #f8d7da; color: #721c24; }
+    .progress-section { margin: 20px 0; }
+    .progress-label { font-size: 14px; color: #666; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .progress-percent { font-weight: 700; color: #667eea; font-size: 16px; }
+    .progress-bar { width: 100%; height: 28px; background: #f0f0f0; border-radius: 14px; overflow: hidden; position: relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); transition: width 0.6s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    .grade-section { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; padding-top: 20px; border-top: 2px solid #f0f0f0; }
+    .grade-item { text-align: center; padding: 10px; background: #f8f9fa; border-radius: 10px; }
+    .grade-label { font-size: 12px; color: #666; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .grade-value { font-size: 26px; font-weight: 700; color: #333; }
+    .grade-value.passed { color: #28a745; }
+    .grade-value.failed { color: #dc3545; }
+    .empty-state { text-align: center; padding: 60px 20px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    .empty-state h2 { color: #666; margin-bottom: 10px; font-size: 24px; }
+    .empty-state p { color: #999; margin-bottom: 20px; }
+    .refresh-btn { background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s; }
+    .refresh-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+    .enrollment-mode { display: inline-block; padding: 3px 10px; background: #e3f2fd; color: #1976d2; border-radius: 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-top: 5px; }
+    @media (max-width: 768px) { .courses-grid { grid-template-columns: 1fr; } .header { flex-direction: column; align-items: flex-start; } .header h1 { font-size: 22px; } }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>📚 My Learning Dashboard</h1>
+      <h1>My Learning Dashboard</h1>
       <div class="user-info">
-        <a href="/weather" class="weather-link">🌤️ Weather App</a>
+        <a href="/login" class="login-btn" id="loginBtn" style="display:none;">Login</a>
         <span class="username" id="username">Loading...</span>
-        <a href="/logout" class="logout-btn">Logout</a>
+        <a href="/logout" class="logout-btn" id="logoutBtn">Logout</a>
       </div>
     </div>
-    
     <div id="error" class="error hidden"></div>
     <div id="loading" class="loading">Loading your courses...</div>
     <div id="coursesContainer" class="courses-grid"></div>
@@ -332,30 +68,27 @@
     const errorEl = document.getElementById('error');
     const coursesContainer = document.getElementById('coursesContainer');
     const usernameEl = document.getElementById('username');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
 
-    function showError(message) {
-      errorEl.textContent = message;
-      errorEl.classList.remove('hidden');
-      loadingEl.style.display = 'none';
-    }
-
-    function hideError() {
-      errorEl.classList.add('hidden');
-    }
+    function showError(message) { errorEl.textContent = message; errorEl.classList.remove('hidden'); loadingEl.style.display = 'none'; }
+    function hideError() { errorEl.classList.add('hidden'); }
 
     async function ensureAuth() {
       try {
         const res = await fetch('/auth/status', { credentials: 'include' });
         const data = await res.json();
         if (!data.authenticated) {
-          window.location.href = '/login';
+          if (loginBtn) loginBtn.style.display = 'inline-block';
+          if (logoutBtn) logoutBtn.style.display = 'none';
+          usernameEl.textContent = 'Please log in to view your courses';
+          loadingEl.style.display = 'none';
           return false;
         }
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (logoutBtn) logoutBtn.style.display = 'inline-block';
         return true;
-      } catch (e) {
-        showError('Authentication error. Please try logging in again.');
-        return false;
-      }
+      } catch (e) { showError('Authentication error. Please try logging in again.'); return false; }
     }
 
     async function getUserInfo() {
@@ -367,50 +100,36 @@
           usernameEl.textContent = `Welcome, ${displayName}`;
           return userData;
         }
-      } catch (e) {
-        console.error('Error fetching user info:', e);
-      }
+      } catch (e) { console.error('Error fetching user info:', e); }
       usernameEl.textContent = 'User';
       return null;
     }
 
-    function formatPercent(value) {
-      if (value === null || value === undefined) return 0;
-      return Math.round(value);
-    }
+    function formatPercent(value) { if (value === null || value === undefined) return 0; return Math.round(value); }
 
     function createCourseCard(course) {
       const card = document.createElement('div');
       card.className = 'course-card';
-      
-      // Extract progress data
       const completion = course.completion?.completion || {};
       const completionPercent = formatPercent(completion.percent || 0);
-      
       const grades = course.grades || {};
       const gradePercent = formatPercent((grades.percent || 0) * 100);
       const passed = grades.passed;
-      
-      // Status badge
       const statusClass = course.is_active ? 'status-active' : 'status-inactive';
-      const statusText = course.is_active ? '✓ Active' : '✗ Inactive';
-      
-      // Enrollment mode
-      const enrollmentMode = course.enrollment_mode || 'audit';
-      
+      const statusText = course.is_active ? '● Active' : '○ Inactive';
+
       card.innerHTML = `
         <div class="course-header">
           <h2 class="course-name">${course.course_name || 'Untitled Course'}</h2>
           <p class="course-id">${course.course_id || ''}</p>
           <div style="margin-top: 8px;">
             <span class="course-status ${statusClass}">${statusText}</span>
-            <span class="enrollment-mode">${enrollmentMode}</span>
+            <span class="enrollment-mode">${course.enrollment_mode || 'audit'}</span>
           </div>
         </div>
-        
         <div class="progress-section">
           <div class="progress-label">
-            <span>📊 Course Progress</span>
+            <span>Course Progress</span>
             <span class="progress-percent">${completionPercent}%</span>
           </div>
           <div class="progress-bar">
@@ -419,7 +138,6 @@
             </div>
           </div>
         </div>
-        
         <div class="grade-section">
           <div class="grade-item">
             <div class="grade-label">Current Grade</div>
@@ -427,67 +145,111 @@
           </div>
           <div class="grade-item">
             <div class="grade-label">Status</div>
-            <div class="grade-value ${passed ? 'passed' : (grades.percent !== undefined ? 'failed' : '')}">${
-              passed ? '✓ Passing' : (grades.percent !== undefined ? '✗ Not Passing' : 'N/A')
-            }</div>
+            <div class="grade-value ${passed ? 'passed' : (grades.percent !== undefined ? 'failed' : '')}">${passed ? '● Passing' : (grades.percent !== undefined ? '○ Not Passing' : 'N/A')}</div>
           </div>
         </div>
+        <div style="margin-top: 16px; display:flex; gap: 10px;">
+          <button class="refresh-btn" data-action="toggle-details">View Details</button>
+          <button class="refresh-btn" data-action="show-completed">Completed Topics</button>
+        </div>
+        <div class="course-details hidden" style="margin-top:16px;"></div>
       `;
-      
+
+      const detailsEl = card.querySelector('.course-details');
+      const toggleBtn = card.querySelector('button[data-action="toggle-details"]');
+      const completedBtn = card.querySelector('button[data-action="show-completed"]');
+
+      toggleBtn.addEventListener('click', async () => {
+        if (detailsEl.getAttribute('data-loaded') === '1') {
+          detailsEl.classList.toggle('hidden');
+          toggleBtn.textContent = detailsEl.classList.contains('hidden') ? 'View Details' : 'Hide Details';
+          return;
+        }
+        toggleBtn.disabled = true; toggleBtn.textContent = 'Loading...';
+        try {
+          await renderCourseDetails(course.course_id, detailsEl);
+          detailsEl.setAttribute('data-loaded', '1');
+          detailsEl.classList.remove('hidden');
+          toggleBtn.textContent = 'Hide Details';
+        } catch (e) {
+          detailsEl.innerHTML = `<div class=\"error\">Failed to load details: ${e.message}</div>`;
+          detailsEl.classList.remove('hidden');
+          toggleBtn.textContent = 'View Details';
+        } finally { toggleBtn.disabled = false; }
+      });
+
+      completedBtn.addEventListener('click', async () => {
+        completedBtn.disabled = true; const prev = completedBtn.textContent; completedBtn.textContent = 'Loading...';
+        try {
+          await renderCompletedTopics(course.course_id, detailsEl);
+          detailsEl.classList.remove('hidden');
+          toggleBtn.textContent = 'Hide Details';
+        } catch (e) {
+          detailsEl.innerHTML = `<div class=\"error\">Failed to load completed topics: ${e.message}</div>`;
+          detailsEl.classList.remove('hidden');
+        } finally { completedBtn.textContent = prev; completedBtn.disabled = false; }
+      });
+
       return card;
     }
 
-    async function loadCourses() {
-      hideError();
-      loadingEl.style.display = 'block';
-      coursesContainer.innerHTML = '';
-      
-      try {
-        const res = await fetch('/api/courses/progress', { credentials: 'include' });
-        
-        if (!res.ok) {
-          if (res.status === 401) {
-            window.location.href = '/login';
-            return;
-          }
-          throw new Error(`Failed to fetch courses: ${res.statusText}`);
-        }
-        
-        const data = await res.json();
-        loadingEl.style.display = 'none';
-        
-        if (!data.courses || data.courses.length === 0) {
-          coursesContainer.innerHTML = `
-            <div class="empty-state">
-              <h2>📚 No Courses Found</h2>
-              <p>You are not enrolled in any courses yet.</p>
-              <button class="refresh-btn" onclick="loadCourses()">🔄 Refresh</button>
-            </div>
-          `;
-          return;
-        }
-        
-        // Create cards for each course
-        data.courses.forEach(course => {
-          const card = createCourseCard(course);
-          coursesContainer.appendChild(card);
+    async function renderCourseDetails(courseId, container) {
+      container.innerHTML = '';
+      const res = await fetch(`/api/course/${encodeURIComponent(courseId)}/progress`, { credentials: 'include' });
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json();
+
+      const overall = data.detailed_progress?.overall_completion_percentage ?? null;
+      const overallHtml = overall !== null ? `<div class=\"progress-label\" style=\"margin-bottom:8px;\"><span>Overall Completion</span><span class=\"progress-percent\">${formatPercent(overall)}%</span></div>` : '';
+
+      let chaptersHtml = '';
+      const chapters = data.detailed_progress?.chapters || [];
+      chapters.forEach((ch, ci) => {
+        chaptersHtml += `<div style=\"margin-top:12px;\"><div style=\"font-weight:700; color:#333;\">${ci+1}. ${ch.display_name || 'Chapter'}</div>`;
+        const sections = ch.sections || [];
+        sections.forEach((sec, si) => {
+          chaptersHtml += `<div style=\"margin-left:12px; margin-top:6px; font-weight:600; color:#444;\">${ci+1}.${si+1} ${sec.display_name || 'Section'}</div>`;
+          const units = sec.units || [];
+          units.forEach((unit, ui) => {
+            const completed = (unit.completed_count && unit.total_count) ? (unit.completed_count >= unit.total_count) : false;
+            chaptersHtml += `<div style=\"margin-left:24px; margin-top:4px;\"><span style=\"color:${completed ? '#28a745' : '#666'}; font-weight:600;\">${completed ? '✔' : '•'}</span><span style=\"margin-left:6px;\">${ci+1}.${si+1}.${ui+1} ${unit.display_name || 'Unit'}</span></div>`;
+            const comps = unit.components || [];
+            comps.forEach((comp) => {
+              const cdone = comp.completed || comp.completion === 1;
+              chaptersHtml += `<div style=\"margin-left:40px; color:${cdone ? '#28a745' : '#999'}; font-size:13px;\">${cdone ? '✔' : '○'} ${comp.display_name || comp.type || 'Component'}</div>`;
+            });
+          });
         });
-        
-      } catch (e) {
-        loadingEl.style.display = 'none';
-        showError(`Error loading courses: ${e.message}`);
-        console.error('Error:', e);
-      }
+        chaptersHtml += `</div>`;
+      });
+
+      container.innerHTML = `<div style=\"background:#f8f9fa; border:1px solid #eef2f7; border-radius:10px; padding:12px;\">${overallHtml}${chaptersHtml || '<div style=\\"color:#666;\\">No detailed structure available.</div>'}</div>`;
     }
 
-    // Initialize
-    (async () => {
-      const authenticated = await ensureAuth();
-      if (!authenticated) return;
-      
-      await getUserInfo();
-      await loadCourses();
-    })();
+    async function renderCompletedTopics(courseId, container) {
+      container.innerHTML = '';
+      const res = await fetch(`/api/course/${encodeURIComponent(courseId)}/units/completed`, { credentials: 'include' });
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json();
+      const items = data.completed_items || [];
+      const list = items.map((i) => `<li><strong>${i.display_name || 'Item'}</strong> <span style=\"color:#666;\">(${i.type || i.block_type || 'component'})</span></li>`).join('');
+      container.innerHTML = `<div style=\"background:#f8f9fa; border:1px solid #eef2f7; border-radius:10px; padding:12px;\"><div class=\"progress-label\" style=\"margin-bottom:8px;\"><span>Completed Topics</span><span class=\"progress-percent\">${items.length}</span></div><ol style=\"margin:0 0 0 16px; padding:0;\">${list || '<li>None yet</li>'}</ol></div>`;
+    }
+
+    async function loadCourses() {
+      hideError(); loadingEl.style.display = 'block'; coursesContainer.innerHTML = '';
+      try {
+        const res = await fetch('/api/courses/progress', { credentials: 'include' });
+        if (!res.ok) { if (res.status === 401) { window.location.href = '/login'; return; } throw new Error(`Failed to fetch courses: ${res.statusText}`); }
+        const data = await res.json(); loadingEl.style.display = 'none';
+        if (!data.courses || data.courses.length === 0) {
+          coursesContainer.innerHTML = `<div class=\"empty-state\"><h2>No Courses Found</h2><p>You are not enrolled in any courses yet.</p><button class=\"refresh-btn\" onclick=\"loadCourses()\">Refresh</button></div>`; return;
+        }
+        data.courses.forEach(course => { const card = createCourseCard(course); coursesContainer.appendChild(card); });
+      } catch (e) { loadingEl.style.display = 'none'; showError(`Error loading courses: ${e.message}`); console.error('Error:', e); }
+    }
+
+    (async () => { const authenticated = await ensureAuth(); if (!authenticated) return; await getUserInfo(); await loadCourses(); })();
   </script>
 </body>
 </html>

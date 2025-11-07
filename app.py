@@ -4,11 +4,18 @@ import os
 import secrets
 import time
 from urllib.parse import urlencode, quote_plus, urlparse
- 
+
 import requests
 from flask import Flask, redirect, request, session, jsonify, send_from_directory, make_response
 from werkzeug.middleware.proxy_fix import ProxyFix
- 
+
+# Load .env as early as possible so all config below can read it
+try:
+    from dotenv import load_dotenv  # type: ignore
+    load_dotenv()
+except Exception:
+    pass
+
 # ===== Flask setup =====
 app = Flask(__name__, static_url_path="/static", static_folder="static")
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(32))
@@ -19,20 +26,19 @@ app.config.update(
 )
  
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
- 
+
 # ===== Config (ENV) =====
+
 OPENEDX_BASE_URL = os.environ.get("OPENEDX_BASE_URL", "").rstrip("/")
 OAUTH_CLIENT_ID = os.environ.get("OAUTH_CLIENT_ID", "")
 OAUTH_CLIENT_SECRET = os.environ.get("OAUTH_CLIENT_SECRET", "")
 REDIRECT_URI = os.environ.get("REDIRECT_URI", "http://localhost:5000/callback")
 OAUTH_SCOPES = os.environ.get("OAUTH_SCOPES", "read profile").strip()
 OAUTH_USE_PKCE_ENV = os.environ.get("OAUTH_USE_PKCE", "auto").lower()
- 
+
 AUTHZ_URL = f"{OPENEDX_BASE_URL}/oauth2/authorize"
 TOKEN_URL = f"{OPENEDX_BASE_URL}/oauth2/access_token"
 ME_URL = f"{OPENEDX_BASE_URL}/api/user/v1/me"
- 
-OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY", "")
  
 # ===== Helpers: PKCE =====
 def _b64url(data: bytes) -> str:
@@ -264,16 +270,30 @@ def parse_course_structure(blocks_data, username):
         structure["overall_total_count"] = 0
     
     return structure
- 
+
 # ===== Routes =====
- 
+
+# Global auth gate: require login for all pages/APIs except OAuth/static/health
+@app.before_request
+def _require_auth_globally():
+    public_paths = {
+        "/login",
+        "/callback",
+        "/auth/status",
+        "/healthz",
+        "/debug/config",
+    }
+    p = request.path or "/"
+    if p.startswith("/static/"):
+        return None
+    if p in public_paths:
+        return None
+    if not is_authenticated():
+        return redirect("/login", code=302)
+
 @app.route("/")
 def index():
     return send_from_directory("static", "index.html")
-
-@app.route("/weather")
-def weather_page():
-    return send_from_directory("static", "weather.html")
  
 @app.route("/auth/status")
 def auth_status():
@@ -283,7 +303,7 @@ def auth_status():
 def login():
     if not OPENEDX_BASE_URL or not OAUTH_CLIENT_ID:
         return make_response("Server not configured for OAuth. Set environment variables.", 500)
- 
+
     state = _b64url(os.urandom(24))
     session["oauth_state"] = state
     redirect_uri = _redirect_uri_effective()
@@ -299,7 +319,12 @@ def login():
         session["pkce_verifier"] = code_verifier
         params["code_challenge"] = code_challenge
         params["code_challenge_method"] = "S256"
-    return redirect(f"{AUTHZ_URL}?{urlencode(params)}", code=302)
+    auth_url = f"{AUTHZ_URL}?{urlencode(params)}"
+    try:
+        print(f"[login] Redirecting to: {auth_url}")
+    except Exception:
+        pass
+    return redirect(auth_url, code=302)
  
 @app.route("/callback")
 def callback():
@@ -688,28 +713,28 @@ def get_completed_units(course_id):
 @app.route("/logout")
 def logout():
     session.clear()
-    edx_logout = f"{OPENEDX_BASE_URL}/logout"
-    return redirect(edx_logout, code=302)
- 
-@app.route("/weather")
-def weather_proxy():
-    if not is_authenticated():
-        return make_response("Unauthorized", 401)
- 
-    if not OPENWEATHER_API_KEY:
-        return make_response("Server missing OPENWEATHER_API_KEY", 500)
- 
-    city = (request.args.get("city") or "").strip()
-    if not city:
-        return make_response("Missing 'city' parameter", 400)
- 
-    url = f"https://api.openweathermap.org/data/2.5/weather?units=metric&q={quote_plus(city)}&appid={OPENWEATHER_API_KEY}"
-    rr = requests.get(url, timeout=20)
-    return (rr.text, rr.status_code, {"Content-Type": "application/json"})
+    if OPENEDX_BASE_URL:
+        edx_logout = f"{OPENEDX_BASE_URL}/logout"
+        return redirect(edx_logout, code=302)
+    # Fallback if base URL is missing
+    return redirect("/", code=302)
  
 @app.route("/healthz")
 def health():
     return "ok", 200
+
+# Temporary: debug config endpoint (do not expose in production)
+@app.route("/debug/config")
+def debug_config():
+    data = {
+        "OPENEDX_BASE_URL": OPENEDX_BASE_URL,
+        "OAUTH_CLIENT_ID": OAUTH_CLIENT_ID[:6] + ("…" if len(OAUTH_CLIENT_ID) > 6 else ""),
+        "REDIRECT_URI_effective": _redirect_uri_effective(),
+        "OAUTH_SCOPES": OAUTH_SCOPES,
+        "PKCE": use_pkce(),
+        "AUTHZ_URL": AUTHZ_URL,
+    }
+    return jsonify(data)
  
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
